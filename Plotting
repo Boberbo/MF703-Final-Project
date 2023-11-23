@@ -1,0 +1,59 @@
+# Simulated Strategy Cumulative Returns
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from scipy.stats import norm
+
+# Set seed for reproducibility
+np.random.seed(42)
+
+# Simulate daily returns for a market-neutral strategy
+# Assume 252 trading days in a year
+simulated_daily_returns = np.random.normal(0, 0.01, 252) # mean return 0, std dev 1%
+
+# Create a DataFrame
+df_returns = pd.DataFrame(simulated_daily_returns, columns=['Daily Returns'])
+
+# Calculate cumulative returns for the plot
+df_returns['Cumulative Returns'] = (1 + df_returns['Daily Returns']).cumprod()
+
+# Risk Metrics Calculations
+
+# Volatility (Standard Deviation)
+volatility = df_returns['Daily Returns'].std()
+
+# Sharpe Ratio (assuming a risk-free rate of 0 for simplicity)
+sharpe_ratio = df_returns['Daily Returns'].mean() / volatility
+
+# Maximum Drawdown
+roll_max = df_returns['Cumulative Returns'].cummax()
+daily_drawdown = df_returns['Cumulative Returns']/roll_max - 1.0
+max_drawdown = daily_drawdown.min()
+
+# Value at Risk (VaR) - Historical method
+var_95 = np.percentile(df_returns['Daily Returns'], 5)
+
+# Conditional Value at Risk (CVaR) - Historical method
+cvar_95 = df_returns[df_returns['Daily Returns'] <= var_95]['Daily Returns'].mean()
+
+# Printing the risk metrics
+risk_metrics = {
+    'Volatility': volatility,
+    'Sharpe Ratio': sharpe_ratio,
+    'Maximum Drawdown': max_drawdown,
+    'Value at Risk (95%)': var_95,
+    'Conditional VaR (95%)': cvar_95
+}
+
+# Plotting the cumulative returns
+plt.figure(figsize=(10, 6))
+plt.plot(df_returns['Cumulative Returns'], label='Cumulative Returns')
+plt.title('Simulated Strategy Cumulative Returns')
+plt.xlabel('Days')
+plt.ylabel('Cumulative Returns')
+plt.legend()
+plt.tight_layout()
+plt.grid(True)
+plt.show()
+
+risk_metrics
